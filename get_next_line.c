@@ -1,33 +1,12 @@
 #include "get_next_line.h"
 #include <stdio.h>
 
-char	*ft_strdup(const char *s)
-{
-	size_t	i;
-	char	*copy;
-	char	*str;
-
-	i = 0;
-	str = (char *)s;
-	copy = malloc(sizeof (char) * ft_strlen(str) + 1);
-	if (copy == NULL)
-	{
-		free(copy);
-		return (NULL);
-	}
-	while (str[i] != '\0')
-	{
-		copy[i] = str[i];
-		i++;
-	}
-	copy[i] = '\0';
-	return (copy);
-}
-
 char	*join_nfree(char *s1, char *s2)
 {
 	char	*tmp;
-	
+
+	if (!s1 && !s2)
+		return (NULL);
 	tmp = ft_strjoin(s1, s2);
 	free(s1);
 	return (tmp);
@@ -47,7 +26,7 @@ char	*get_charleft(int fd, char *charleft)
 	while (r_bytes > 0)
 	{
 		r_bytes = read(fd, buff, BUFFER_SIZE);
-		if (r_bytes == -1)
+		if (r_bytes <= 0)
 		{
 			free (buff);
 			return (NULL);
@@ -67,32 +46,45 @@ char	*get_line(char *charleft, char *line)
 	int		len;
 	
 	len = 0;
-	while (charleft[len] != '\0')
+	if (!charleft)
+		return (NULL);
+	while (charleft && charleft[len] != '\n')
 		len++;
-	line = malloc(sizeof(char) * len + 1);
+	line = malloc(sizeof(char) * len + 2);
 	if (!line)
 		return (NULL);
 	i = 0;
-	while (i < len && charleft[len] != '\n')
+	while (charleft && charleft[i] != '\n')
 	{
 		line[i] = charleft[i];
 		i++;
 	}
+	if (charleft[i] == '\n')
+		line[i++] = '\n';
 	line[i] = '\0';
 	return (line);
 }
 
-char	*get_new_charleft(char *charleft, char *line)
+char	*get_new_charleft(char *charleft)
 {
 	char	*new_charleft;
 	int		i;
+	int		j;
 
 	i = 0;
-	while (charleft[i] == line[i])
+	while (charleft[i] && charleft[i] != '\n')
 		i++;
-	if (charleft[i] == '\0')
+	if (!charleft[i])
+	{
+		free(charleft);
 		return (NULL);
-	new_charleft = ft_strdup(&charleft[i]);
+	}
+	new_charleft = malloc(sizeof(char) * (ft_strlen(charleft) - i + 1));
+	i++;
+	j = 0;
+	while (charleft[i])
+		new_charleft[j++] = charleft[i++];
+	new_charleft[j] = '\0';
 	free(charleft);
 	return (new_charleft);
 }
@@ -102,19 +94,17 @@ char	*get_next_line(int fd)
 	static char	*charleft;
 	char		*line;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
 		return (NULL);
 	line = NULL;
 	charleft = get_charleft(fd, charleft);
-	printf("charleft : %s\n", charleft);
 	if (!charleft)
 		return (NULL);
 	line = get_line(charleft, line);
-	printf("coucou\n");
-	charleft = get_new_charleft(charleft, line);
+	charleft = get_new_charleft(charleft);
+	//free(charleft);
 	return (line);
 }
-
 #include <fcntl.h>
 
 int	main(void)
@@ -124,10 +114,11 @@ int	main(void)
 	fd = open("lorem_ipsum.txt", O_RDONLY);
 	char	*line;
 
-	while (fd != -1)
+	while (fd != -1 && line != NULL)
 	{
 		line  = get_next_line(fd);
 		printf("line read = %s\n", line);
 		free(line);
-	}	
-}
+	}
+	return (0);
+}	
