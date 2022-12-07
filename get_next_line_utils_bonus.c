@@ -1,4 +1,4 @@
-#include "get_next_line_bonus.h"
+#include "get_next_line.h"
 
 void	*ft_memset(void *s, int c, size_t n)
 {

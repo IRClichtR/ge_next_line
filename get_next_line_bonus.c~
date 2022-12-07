@@ -1,4 +1,4 @@
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 char	*join_nfree(char *s1, char *s2)
 {
@@ -94,19 +94,19 @@ char	*get_new_charleft(char *charleft)
 
 char	*get_next_line(int fd)
 {
-	static char	*charleft;
+	static char	*charleft[1024];
 	char		*line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
 		return (NULL);
 	line = NULL;
-	charleft = get_charleft(fd, charleft);
-	if (!charleft)
+	charleft[fd] = get_charleft(fd, charleft);
+	if (!charleft[fd])
 		return (NULL);
-	line = get_line(charleft, line);
-	charleft = get_new_charleft(charleft);
+	line = get_line(charleft[fd], line);
+	charleft[fd] = get_new_charleft(charleft[fd]);
 	if (line == NULL)
-		free(charleft);
+		free(charleft[fd]);
 	return (line);
 }
 
