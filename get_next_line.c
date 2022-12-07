@@ -20,13 +20,15 @@ char	*get_charleft(int fd, char *charleft)
 	if (!charleft)
 		charleft = ft_calloc(1, 1);
 	buff = malloc(sizeof(char) * (BUFFER_SIZE + 1));
-	if (!charleft)
+	if (!buff || !charleft)
 		return (NULL);
 	r_bytes = 1;
 	while (r_bytes > 0)
 	{
 		r_bytes = read(fd, buff, BUFFER_SIZE);
-		if (r_bytes <= 0)
+		if (r_bytes == 0)
+			return (charleft);
+		if (r_bytes < 0)
 		{
 			free (buff);
 			return (NULL);
@@ -48,19 +50,24 @@ char	*get_line(char *charleft, char *line)
 	len = 0;
 	if (!charleft)
 		return (NULL);
-	while (charleft && charleft[len] != '\n')
+	while (charleft[len] && charleft[len] != '\n')
 		len++;
 	line = malloc(sizeof(char) * len + 2);
 	if (!line)
 		return (NULL);
 	i = 0;
-	while (charleft && charleft[i] != '\n')
+	while (charleft[i] && charleft[i] != '\n')
 	{
 		line[i] = charleft[i];
 		i++;
 	}
 	if (charleft[i] == '\n')
 		line[i++] = '\n';
+	else
+	{
+		free(line);
+		return (NULL);
+	}
 	line[i] = '\0';
 	return (line);
 }
@@ -102,7 +109,8 @@ char	*get_next_line(int fd)
 		return (NULL);
 	line = get_line(charleft, line);
 	charleft = get_new_charleft(charleft);
-	//free(charleft);
+	if (line == NULL)
+		free(charleft);
 	return (line);
 }
 #include <fcntl.h>
@@ -111,14 +119,16 @@ int	main(void)
 {
 	int	fd;
 
-	fd = open("lorem_ipsum.txt", O_RDONLY);
+	fd = open("new_lo", O_RDONLY);
 	char	*line;
 
 	while (fd != -1 && line != NULL)
 	{
 		line  = get_next_line(fd);
 		printf("line read = %s\n", line);
+		printf("______________________________________________________________\n\n");
 		free(line);
 	}
+	close(fd);
 	return (0);
 }	
