@@ -26,7 +26,7 @@ char	*get_charleft(int fd, char *charleft)
 	{
 		r_bytes = read(fd, buff, BUFFER_SIZE);
 		if (r_bytes == 0)
-			return (charleft);
+			return (free(buff), charleft);
 		if (r_bytes < 0)
 			return (free(buff), NULL);
 		buff[r_bytes] = '\0';
@@ -123,6 +123,7 @@ int	main(void)
 	line  = get_next_line(fd);
 	printf("line read = %s\n", line);
 	printf("______________________________________________________________\n\n");
+	free(line);
 	while (fd != -1 && line != NULL)
 	{
 		line  = get_next_line(fd);
